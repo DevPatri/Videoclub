@@ -22,47 +22,35 @@ if (isset($_SESSION["usuario1"])) {
 } else {
     $usuario = new Cliente('Marina', 1);
     $_SESSION['usuario1'] = $usuario;
-    echo '<br>usuario creado<br>';
+    echo 'Usuario creado';
 }
 
-echo '<pre>'; // This is for correct handling of newlines
-ob_start();
-var_dump($usuario);
-$a = ob_get_contents();
-ob_end_clean();
-echo htmlspecialchars($a, ENT_QUOTES); // Escape every HTML special chars (especially > and < )
-echo '</pre>';
 /* script para verificar si existe en sesion el array con las peliculas o no. */
-// if (!isset($_SESSION["arrayPelis"])) {
-    $peli1 = new Pelicula('Matrix', 'EEUU', 'Sci-fi', 110, '2001-06-20', 0, 0);
-    $peli2 = new Pelicula('Amanece que no es poco', 'Española', 'Humor absurdo', 95, '2001-12-17', 0, 0);
-    $peli3 = new Pelicula('Harry Potter', 'EEUU', 'Fantasía', 90, '2007-05-15', 3, 15);
-    $peli4 = new Pelicula('Malditos bastardos', 'EEUU', 'Bélico', 120, '2020-04-01', 5, 25);
-    $arrayPelis = array($peli1, $peli2, $peli3, $peli4);
-    $_SESSION['arrayPelis'] = $arrayPelis;
+$peli1 = new Pelicula('Matrix', 'EEUU', 'Sci-fi', 110, '2001-06-20', 0, 0);
+$peli2 = new Pelicula('Amanece que no es poco', 'Española', 'Humor absurdo', 95, '2001-12-17', 0, 0);
+$peli3 = new Pelicula('Harry Potter', 'EEUU', 'Fantasía', 90, '2007-05-15', 3, 15);
+$peli4 = new Pelicula('Malditos bastardos', 'EEUU', 'Bélico', 120, '2020-04-01', 5, 25);
+$arrayPelis = array($peli1, $peli2, $peli3, $peli4);
+$_SESSION['arrayPelis'] = $arrayPelis;
 
-    $serie = new Serie('Breaking Bad', 'EEUU', 'Thriller');
+$serie = new Serie('Breaking Bad', 'EEUU', 'Thriller');
 
-    $cap1 = new Capitulo(25, '2022-10-01');
-    $cap2 = new Capitulo(30, '2022-10-08');
-    $cap3 = new Capitulo(40, '2022-10-15');
-    $cap4 = new Capitulo(35, '2022-10-22');
-    $cap5 = new Capitulo(45, '2022-10-29');
+$cap1 = new Capitulo(25, '2022-10-01');
+$cap2 = new Capitulo(30, '2022-10-08');
+$cap3 = new Capitulo(40, '2022-10-15');
+$cap4 = new Capitulo(35, '2022-10-22');
+$cap5 = new Capitulo(45, '2022-10-29');
 
-    $arrayCapitulos = array($cap1, $cap2, $cap3, $cap4, $cap5);
-    $_SESSION['arrayCapitulos'] = $arrayCapitulos;
+$arrayCapitulos = array($cap1, $cap2, $cap3, $cap4, $cap5);
+$_SESSION['arrayCapitulos'] = $arrayCapitulos;
 
-    $serie->insertaCapitulo($cap1);
-    $serie->insertaCapitulo($cap2);
-    $serie->insertaCapitulo($cap3);
-    $serie->insertaCapitulo($cap4);
-    $serie->insertaCapitulo($cap5);
+$serie->insertaCapitulo($cap1);
+$serie->insertaCapitulo($cap2);
+$serie->insertaCapitulo($cap3);
+$serie->insertaCapitulo($cap4);
+$serie->insertaCapitulo($cap5);
 
-    $_SESSION['serie'] = $serie;
-// }
-// $serie = $_SESSION['serie'];
-// $arrayPelis = $_SESSION['arrayPelis'];
-// $arrayCapitulos = $_SESSION['arrayCapitulos'];
+$_SESSION['serie'] = $serie;
 
 /* script para comprar una pelicula */
 if (isset($_POST["comprar"])) {
@@ -93,28 +81,37 @@ if (isset($_POST["alquilar"])) {
 if (isset($_POST["vista"])) {
 
     $visto = $_POST['visto'];
-    foreach ($arrayPelis as $item) {
+    foreach ($arrayPelis as $item) { /* busca en pelis */
         if ($item->getTitulo() === $visto) {
             $contenido = $item;
         }
     }
-    foreach ($serie->getCapitulos() as $key => $cap) {
+    foreach ($serie->getCapitulos() as $key => $cap) { /* busca en series */
         if ($serie->devuelveCapitulo($key) === $visto) {
+            $num_cap = $key +1;
             $contenido = $cap;
         }
     }
-}
-// var_dump($contenido);
-$repetido = false; /* verificamos que no está el objeto Pelicula en el array de vistas */
-foreach ($usuario->getVistas() as $item) {
-    if ($item->getContenido() === $contenido) {
-        $repetido = true;
+    $repetido = false; /* verificamos que no está el objeto en el array de vistas */
+    foreach ($usuario->getVistas() as $item) {
+        if ($item->getContenido() === $contenido) {
+            $repetido = true;
+        }
     }
+    if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dados y la incluimos en el array */
+        $vista = new Vista($contenido, date("Y-m-d"), $_POST['porcentaje']);
+        $usuario->ve($vista);
+    }
+    header("Location: index.php");
+    exit();
 }
-if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dados y la incluimos en el array */
-    $vista = new Vista($contenido, date("Y-m-d"), 100);
-    $usuario->ve($vista);
-}
+// echo '<pre>'; // This is for correct handling of newlines
+// ob_start();
+// var_dump($usuario->getVistas());
+// $a = ob_get_contents();
+// ob_end_clean();
+// echo htmlspecialchars($a, ENT_QUOTES); // Escape every HTML special chars (especially > and < )
+// echo '</pre>';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -126,13 +123,14 @@ if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dad
 </head>
 
 <body style="font-size: 14px; color: #3B3B3B; background-color: #9fc2cc; font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">
-    <div>
-        <form action="" method="POST">
-            <input type="submit" name="reset" id="reset" value="Reiniciar">
-        </form>
-    </div>
     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ">
         <h1 style="font-size:3em; text-align: center; color: #F05365; padding:  0em 0.5em 0em 0.5em; border-radius: .3em; box-shadow: 4px 3px 0px rgba(255,255,255,1); background-color:aquamarine;">VIDEOCLUB</h1>
+    </div>
+    <!-- botón para reiniciar la sesión de usuario -->
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ">
+        <form action="" method="POST">
+            <input type="submit" name="reset" id="reset" value="Reiniciar" style="padding: 0.4em 1em 0.4em 1em; border-radius: 2em; border-width: 0.2rem;">
+        </form>
     </div>
     <!-- tabla con todas las peliculas disponibles -->
     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ">
@@ -187,15 +185,15 @@ if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dad
             </summary>
             <table style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; ">
                 <?php
-                    foreach ($serie->getCapitulos() as $key => $cap) : ?>
-                        <tr style="border-bottom: 1px solid #331832;">
+                foreach ($serie->getCapitulos() as $key => $cap) : ?>
+                    <tr style="border-bottom: 1px solid #331832;">
                         <td><?= $serie->devuelveCapitulo($key) ?></td>
                         <td>
                             <form method="POST">
                                 <select name="porcentaje" id="porcentaje">
                                     <?php
                                     for ($i = 5; $i <= 100; $i += 5) {
-                                        echo '<option value="' . $i . '">' . $i . '</option>';
+                                        echo '<option value="' . $i . '">' . $i . '%' . '</option>';
                                     }
                                     ?>
                                 </select>
@@ -206,7 +204,7 @@ if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dad
                     <?php endforeach;
 
                     ?>
-                </tr>
+                    </tr>
 
 
             </table>
@@ -261,7 +259,7 @@ if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dad
                                 <select name="porcentaje" id="porcentaje">
                                     <?php
                                     for ($i = 5; $i <= 100; $i += 5) {
-                                        echo '<option value="' . $i . '">' . $i . '</option>';
+                                        echo '<option value="' . $i . '">' . $i . '%' . '</option>';
                                     }
                                     ?>
                                 </select>
@@ -300,6 +298,13 @@ if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dad
                         <td>
                             <form method="POST">
                                 <input type="text" name="visto" id="visto" value="<?= $item->getTitulo() ?>" hidden>
+                                <select name="porcentaje" id="porcentaje">
+                                    <?php
+                                    for ($i = 5; $i <= 100; $i += 5) {
+                                        echo '<option value="' . $i . '">' . $i . '%' . '</option>';
+                                    }
+                                    ?>
+                                </select>
                                 <input type="submit" name="vista" id="vista" value="Vista">
                             </form>
                         </td>
@@ -322,7 +327,17 @@ if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dad
             if (isset($usuario)) {
                 foreach ($usuario->getVistas() as $item) : ?>
                     <tr style="border-bottom: 1px solid #331832;">
-                        <td><?= $item->getContenido()->getTitulo() ?></td>
+                        <td><?php
+                            if ($item->getContenido() instanceof Capitulo) {
+                                foreach ($serie->getCapitulos() as $key => $item2) {
+                                    if ($item->getContenido() == $item2) {
+                                        echo $serie->getTitulo() . ' Capítulo: ' . $key+1;
+                                    }
+                                }
+                            } elseif ($item->getContenido() instanceof Pelicula) {
+                                echo $item->getContenido()->getTitulo();
+                            }
+                            ?></td>
                         <td><?= $item->getFecha() ?></td>
                         <td><?= $item->getPorcentajeVision() ?></td>
                     </tr>
@@ -330,6 +345,7 @@ if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dad
             } ?>
         </table>
     </div>
+
     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <h3 style="margin-bottom: 0; text-align: center; color: #F05365; text-shadow: 2px 1px 0px rgba(255,255,255,0.6);">DATOS VISI&Oacute;N Y GASTOS</h3>
         <p>El gasto que llevas este mes, es de: <strong><?php echo $usuario->gasto(); ?> &euro;</strong>
@@ -337,7 +353,15 @@ if (!$repetido) { /* si no está creamos una vista nueva con los parámetros dad
     </div>
 
     <?php
-    $_SESSION['usuario1'] = $usuario;
+    // echo '<pre>'; // This is for correct handling of newlines
+    // ob_start();
+    // var_dump($item);
+    // var_dump($item2);
+    // $a = ob_get_contents();
+    // ob_end_clean();
+    // echo htmlspecialchars($a, ENT_QUOTES); // Escape every HTML special chars (especially > and < )
+    // echo '</pre>';
+    // $_SESSION['usuario1'] = $usuario;
     ?>
 </body>
 

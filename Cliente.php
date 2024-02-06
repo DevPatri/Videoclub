@@ -26,7 +26,7 @@ class Cliente
 
     public function ve(Vista $vista): void
     {
-        if ($vista instanceof Serie || $vista instanceof Capitulo){
+        if ($vista->getContenido() instanceof Capitulo){
             array_push($this->vistas, $vista);
         }elseif (in_array($vista->getContenido(), $this->alquileres) || in_array($vista->getContenido(), $this->compras)) {
             array_push($this->vistas, $vista);

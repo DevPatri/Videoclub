@@ -7,7 +7,7 @@ class Vista{
 
     public function __construct($contenido,$fecha,$porcentajeVision) {
         
-        if($contenido instanceof Pelicula || $contenido instanceof Serie || $contenido instanceof Capitulo){
+        if($contenido instanceof Pelicula || $contenido instanceof Capitulo){
             $this->contenido = $contenido;
         }
         $this->fecha = $fecha;
